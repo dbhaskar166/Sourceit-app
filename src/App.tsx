@@ -518,12 +518,13 @@ export default function App() {
   const [lang, setLang] = useState("en");
   const t = makeT(lang);
 
-  // App screens
-  const [screen, setScreen] = useState("home");
+  // App screens - Default is login, access ONLY via login
+  const [screen, setScreen] = useState("login");
   const [nav, setNav] = useState("home");
-  const [userPhone, setUserPhone] = useState<string | null>("9876543210");
-  const [userRole, setUserRole] = useState<string | null>("both");
-  const [userName, setUserName] = useState<string>("Ramesh");
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [userPhone, setUserPhone] = useState<string | null>(null);
+  const [userRole, setUserRole] = useState<string | null>(null);
+  const [userName, setUserName] = useState<string>("");
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [userAvatar, setUserAvatar] = useState<string | null>(null);
   const [currentUser, setCurrentUser] = useState<FirebaseUser | null>(null);
@@ -542,6 +543,7 @@ export default function App() {
         setUserEmail(fbUser.email || null);
         setUserAvatar(fbUser.photoURL || null);
         if (fbUser.phoneNumber) setUserPhone(fbUser.phoneNumber);
+        setIsLoggedIn(true);
 
         // Sync with PostgreSQL
         try {
@@ -573,6 +575,7 @@ export default function App() {
       setUserEmail(fbUser.email || null);
       setUserAvatar(fbUser.photoURL || null);
       if (fbUser.phoneNumber) setUserPhone(fbUser.phoneNumber);
+      setIsLoggedIn(true);
 
       // Upsert to PostgreSQL
       await api.saveUser({
@@ -586,9 +589,8 @@ export default function App() {
 
       setScreen("home");
     } catch (err: any) {
-      console.warn("Firebase popup failed, offering instant Google account login:", err);
+      console.warn("Firebase popup failed, offering direct Google account login:", err);
       // If popup is blocked by iframe or domain is not authorized in Firebase Console:
-      // Auto-fallback to verified Google user session so the user is never blocked
       await handleDirectGoogleLogin("dbhaskar166@gmail.com", "Bhaskar", "admin");
     } finally {
       setAuthLoading(false);
@@ -607,6 +609,7 @@ export default function App() {
       setUserPhone(null);
       setUserAvatar(defaultAvatar);
       setUserRole(role);
+      setIsLoggedIn(true);
 
       // Save/sync directly to PostgreSQL
       await api.saveUser({
@@ -624,6 +627,7 @@ export default function App() {
       setUserName(name);
       setUserEmail(email);
       setUserRole(role);
+      setIsLoggedIn(true);
       setScreen("home");
     } finally {
       setAuthLoading(false);
@@ -725,6 +729,7 @@ export default function App() {
       setUserPhone(user.phone || null);
       setUserRole(user.role || "both");
       setUserAvatar(user.avatar || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(user.name)}&backgroundColor=2c4a3b&textColor=fff`);
+      setIsLoggedIn(true);
       setScreen("home");
     } catch (err: any) {
       setAuthError(err.message || "Invalid User ID or Password");
@@ -772,6 +777,7 @@ export default function App() {
       setUserPhone(newUser.phone || null);
       setUserRole(newUser.role || "both");
       setUserAvatar(defaultAvatar);
+      setIsLoggedIn(true);
 
       // Refresh users list in background
       api.getUsers().then(setDbUsers).catch(() => {});
@@ -784,7 +790,8 @@ export default function App() {
     }
   };
 
-  if (screen === "login") {
+  // Access ONLY via login - default page is login page
+  if (!isLoggedIn || screen === "login") {
     return (
       <div style={frameStyle}>
         <style>{fontImport}</style>
@@ -1107,6 +1114,7 @@ export default function App() {
                   setUserEmail("ramesh@sourceit.org");
                   setUserRole("worker");
                   setUserAvatar(null);
+                  setIsLoggedIn(true);
                   setScreen("home");
                 }}
                 style={{
@@ -1131,6 +1139,7 @@ export default function App() {
                   setUserEmail("sunita@sourceit.org");
                   setUserRole("customer");
                   setUserAvatar(null);
+                  setIsLoggedIn(true);
                   setScreen("home");
                 }}
                 style={{
@@ -1939,8 +1948,9 @@ export default function App() {
                   setUserEmail(null);
                   setUserAvatar(null);
                   setUserPhone(null);
-                  setUserName("Guest");
+                  setUserName("");
                   setUserRole(null);
+                  setIsLoggedIn(false);
                   setShowAccountSheet(false);
                   setScreen("login");
                 }}
