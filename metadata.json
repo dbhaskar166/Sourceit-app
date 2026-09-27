@@ -1,0 +1,6 @@
+{
+  "name": "SourceIt - Rural Work, Equipment & Marketplace",
+  "description": "Hyperlocal platform for hiring rural workers, renting farm equipment, buying/selling local produce, and community Q&A.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
